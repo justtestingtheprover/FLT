@@ -215,7 +215,9 @@ theorem GL2.localTameLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
 -- then Aˣ is a compact subgroup of Rˣ"
 theorem GL2.localTameLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
     IsCompact (GL2.localTameLevel v).carrier :=
-  sorry
+  IsCompact.of_isClosed_subset (GL2.localFullLevel.isCompact v)
+    (Subgroup.isClosed_of_isOpen (localTameLevel v) (GL2.localTameLevel.isOpen v))
+    (GL2.localTameLevel_le_localFullLevel v)
 
 end IsDedekindDomain
 
