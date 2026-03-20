@@ -77,8 +77,68 @@ theorem M2.localFullLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
 -- the clever way to prove this is a theorem of the form "if A is an open submonoid of R
 -- then Aˣ is an open subgroup of Rˣ"
 theorem GL2.localFullLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
-    IsOpen (GL2.localFullLevel v).carrier :=
-  sorry
+    IsOpen (GL2.localFullLevel v).carrier := by
+  have ind : Topology.IsInducing (Units.embedProduct (Matrix (Fin 2) (Fin 2) (v.adicCompletion F))) :=
+    Units.isInducing_embedProduct
+  rw [ind.isOpen_iff]
+  let S := (M2.localFullLevel v).carrier
+  let Sop := MulOpposite.op '' S
+  use S ×ˢ Sop
+  constructor
+  · apply IsOpen.prod (M2.localFullLevel.isOpen v)
+    exact MulOpposite.opHomeomorph.isOpen_image.mpr (M2.localFullLevel.isOpen v)
+  · ext u
+    simp only [Set.mem_preimage, Set.mem_prod, Units.embedProduct_apply]
+    constructor
+    · intro ⟨hval, hinv⟩
+      rw [Set.mem_image] at hinv
+      obtain ⟨inv_mat, hinv_mem, hinv_eq⟩ := hinv
+      have hinv_eq' : inv_mat = u.inv := MulOpposite.op_injective hinv_eq
+      simp only [GL2.localFullLevel, Subgroup.mem_carrier, MonoidHom.mem_range]
+      let yval : Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F) :=
+        Matrix.of (fun i j => ⟨u.val i j, hval i j⟩)
+      let yinv : Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F) :=
+        Matrix.of (fun i j => ⟨u.inv i j, hinv_eq' ▸ hinv_mem i j⟩)
+      have hinj : Function.Injective 
+          ((v.adicCompletionIntegers F).subtype.mapMatrix : 
+           Matrix (Fin 2) (Fin 2) _ →+* Matrix (Fin 2) (Fin 2) _) := 
+        Matrix.map_injective Subtype.val_injective
+      have hyval : (v.adicCompletionIntegers F).subtype.mapMatrix yval = u.val := by
+        ext i j; simp only [yval, RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply]; rfl
+      have hyinv : (v.adicCompletionIntegers F).subtype.mapMatrix yinv = u.inv := by
+        ext i j; simp only [yinv, RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply]; rfl
+      have hmul : yval * yinv = 1 := by
+        apply hinj
+        rw [RingHom.map_mul, RingHom.map_one, hyval, hyinv]
+        exact u.val_inv
+      have hmul' : yinv * yval = 1 := by
+        apply hinj
+        rw [RingHom.map_mul, RingHom.map_one, hyval, hyinv]
+        exact u.inv_val
+      refine ⟨⟨yval, yinv, hmul, hmul'⟩, ?_⟩
+      ext i j
+      simp only [Units.coe_map, RingHom.mapMatrix_apply, Matrix.map_apply, yval, Matrix.of_apply]
+      rfl
+    · intro hu
+      simp only [GL2.localFullLevel, Subgroup.mem_carrier, MonoidHom.mem_range] at hu
+      obtain ⟨y, hy⟩ := hu
+      constructor
+      · intro i j
+        have huval : u.val = (v.adicCompletionIntegers F).subtype.mapMatrix y.val := by
+          have h := congr_arg Units.val hy
+          simp only [Units.coe_map] at h
+          exact h.symm
+        rw [huval]
+        exact (y.val i j).property
+      · rw [Set.mem_image]
+        refine ⟨(v.adicCompletionIntegers F).subtype.mapMatrix y.inv, ?_, ?_⟩
+        · intro i j
+          exact (y.inv i j).property
+        · congr 1
+          have huinv : u.inv = (v.adicCompletionIntegers F).subtype.mapMatrix y.inv := by
+            calc u.inv = (Units.map (v.adicCompletionIntegers F).subtype.mapMatrix.toMonoidHom y).inv := by rw [← hy]
+              _ = (v.adicCompletionIntegers F).subtype.mapMatrix y.inv := rfl
+          exact huinv.symm
 
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
