@@ -202,8 +202,15 @@ theorem GL2.mem_localTameLevel_iff {v : HeightOneSpectrum (𝓞 F)}
     {x : GL (Fin 2) (v.adicCompletion F)} :
     x ∈ localTameLevel v ↔
       (∀ i j, Valued.v (x.val i j) ≤ 1) ∧ Valued.v x.val.det = 1 ∧
-      Valued.v (x.val 0 0 - x.val 1 1) < 1 ∧ Valued.v (x.val 1 0) < 1 :=
-  sorry
+      Valued.v (x.val 0 0 - x.val 1 1) < 1 ∧ Valued.v (x.val 1 0) < 1 := by
+  constructor
+  · intro ⟨h1, h2, h3⟩
+    rw [mem_localFullLevel_iff_v_le_one_and_v_det_eq_one] at h1
+    exact ⟨h1.1, h1.2, h2, h3⟩
+  · intro ⟨h1, h2, h3, h4⟩
+    refine ⟨?_, h3, h4⟩
+    rw [mem_localFullLevel_iff_v_le_one_and_v_det_eq_one]
+    exact ⟨h1, h2⟩
 
 -- the clever way to prove this is a theorem of the form "if A is an open submonoid of R
 -- then Aˣ is an open subgroup of Rˣ"
