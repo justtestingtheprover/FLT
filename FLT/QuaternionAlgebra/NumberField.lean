@@ -83,8 +83,49 @@ theorem GL2.localFullLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
 theorem GL2.localFullLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
-    IsCompact (GL2.localFullLevel v).carrier :=
-  sorry
+    IsCompact (GL2.localFullLevel v).carrier := by
+  haveI hR : CompactSpace (v.adicCompletionIntegers F) := 
+    NumberField.instCompactSpaceAdicCompletionIntegers F v
+  let f : GL (Fin 2) (v.adicCompletionIntegers F) → GL (Fin 2) (v.adicCompletion F) := 
+    Units.map (RingHom.mapMatrix (v.adicCompletionIntegers F).subtype).toMonoidHom
+  have hrange : (GL2.localFullLevel v).carrier = Set.range f := rfl
+  rw [hrange]
+  haveI : CompactSpace (GL (Fin 2) (v.adicCompletionIntegers F)) := by
+    let M := Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F)
+    haveI : CompactSpace M := by
+      show CompactSpace (Fin 2 → Fin 2 → v.adicCompletionIntegers F)
+      exact Pi.compactSpace
+    haveI : CompactSpace Mᵐᵒᵖ := inferInstance
+    haveI hProd : CompactSpace (M × Mᵐᵒᵖ) := inferInstance
+    have hemb : Topology.IsEmbedding (Units.embedProduct M) := Units.isEmbedding_embedProduct
+    have hclosed : IsClosed (Set.range (Units.embedProduct M)) := by
+      have heq : Set.range (Units.embedProduct M) = 
+          {p : M × Mᵐᵒᵖ | p.1 * p.2.unop = 1 ∧ p.2.unop * p.1 = 1} := by
+        ext ⟨a, b⟩
+        simp only [Set.mem_range, Set.mem_setOf_eq, Units.embedProduct]
+        constructor
+        · rintro ⟨u, hu⟩
+          simp only [MonoidHom.coe_mk, OneHom.coe_mk, Prod.mk.injEq] at hu
+          obtain ⟨ha, hb⟩ := hu
+          rw [← ha]
+          have hunop : b.unop = ↑u⁻¹ := by 
+            rw [← MulOpposite.op_inj, MulOpposite.op_unop, hb]
+          rw [hunop]
+          exact ⟨u.val_inv, u.inv_val⟩
+        · intro ⟨h1, h2⟩
+          refine ⟨⟨a, b.unop, h1, h2⟩, ?_⟩
+          simp only [MonoidHom.coe_mk, OneHom.coe_mk, Units.val_mk, Units.inv_mk, 
+            MulOpposite.op_unop]
+      rw [heq]
+      refine IsClosed.inter ?_ ?_
+      · exact isClosed_eq (continuous_fst.mul (MulOpposite.continuous_unop.comp continuous_snd)) continuous_const
+      · exact isClosed_eq ((MulOpposite.continuous_unop.comp continuous_snd).mul continuous_fst) continuous_const
+    have ce : Topology.IsClosedEmbedding (Units.embedProduct M) := ⟨hemb, hclosed⟩
+    exact ce.compactSpace
+  have hf_cont : Continuous f := by
+    apply Units.continuous_map
+    exact continuous_matrix fun i j => continuous_subtype_val.comp ((continuous_apply j).comp (continuous_apply i))
+  exact isCompact_range hf_cont
 
 lemma GL2.mem_localFullLevel {v : HeightOneSpectrum (𝓞 F)} {x : GL (Fin 2) (v.adicCompletion F)}
     (hx : x ∈ localFullLevel v) :
