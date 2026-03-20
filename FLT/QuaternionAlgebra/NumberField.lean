@@ -83,8 +83,23 @@ theorem GL2.localFullLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
 theorem GL2.localFullLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
-    IsCompact (GL2.localFullLevel v).carrier :=
-  sorry
+    IsCompact (GL2.localFullLevel v).carrier := by
+  haveI : CompactSpace (v.adicCompletionIntegers F) :=
+    NumberField.instCompactSpaceAdicCompletionIntegers F v
+  haveI : CompactSpace (Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F)) := Pi.compactSpace
+  haveI : CompactSpace (GL (Fin 2) (v.adicCompletionIntegers F)) := by
+    let M := Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F)
+    have hcont : Continuous (Units.embedProduct M) := Units.continuous_embedProduct
+    have hinj : Function.Injective (Units.embedProduct M) := Units.embedProduct_injective M
+    exact (hcont.isClosedEmbedding hinj).compactSpace
+  simp only [GL2.localFullLevel]
+  apply isCompact_range
+  apply Continuous.units_map
+  apply continuous_pi
+  intro i
+  apply continuous_pi
+  intro j
+  exact continuous_subtype_val.comp (continuous_apply_apply i j)
 
 lemma GL2.mem_localFullLevel {v : HeightOneSpectrum (𝓞 F)} {x : GL (Fin 2) (v.adicCompletion F)}
     (hx : x ∈ localFullLevel v) :
