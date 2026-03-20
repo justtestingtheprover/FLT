@@ -215,8 +215,34 @@ theorem GL2.mem_localTameLevel_iff {v : HeightOneSpectrum (𝓞 F)}
 -- the clever way to prove this is a theorem of the form "if A is an open submonoid of R
 -- then Aˣ is an open subgroup of Rˣ"
 theorem GL2.localTameLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
-    IsOpen (GL2.localTameLevel v).carrier :=
-  sorry
+    IsOpen (GL2.localTameLevel v).carrier := by
+  have h1 : IsOpen (GL2.localFullLevel v).carrier := GL2.localFullLevel.isOpen v
+  have h2 : IsOpen {x : GL (Fin 2) (v.adicCompletion F) | Valued.v (x.val 0 0 - x.val 1 1) < 1} := by
+    have hball : IsOpen {x : v.adicCompletion F | Valued.v x < 1} := 
+      Valued.isOpen_ball (R := v.adicCompletion F) 1
+    refine IsOpen.preimage ?_ hball
+    have hcont1 : Continuous (fun x : GL (Fin 2) (v.adicCompletion F) => x.val 0 0) :=
+      Units.continuous_val.matrix_elem 0 0
+    have hcont2 : Continuous (fun x : GL (Fin 2) (v.adicCompletion F) => x.val 1 1) :=
+      Units.continuous_val.matrix_elem 1 1
+    exact hcont1.sub hcont2
+  have h3 : IsOpen {x : GL (Fin 2) (v.adicCompletion F) | Valued.v (x.val 1 0) < 1} := by
+    have hball : IsOpen {x : v.adicCompletion F | Valued.v x < 1} := 
+      Valued.isOpen_ball (R := v.adicCompletion F) 1
+    refine IsOpen.preimage ?_ hball
+    exact Units.continuous_val.matrix_elem 1 0
+  have : (GL2.localTameLevel v).carrier = 
+         (GL2.localFullLevel v).carrier ∩ 
+         ({x | Valued.v (x.val 0 0 - x.val 1 1) < 1} ∩ {x | Valued.v (x.val 1 0) < 1}) := by
+    ext x
+    simp only [GL2.localTameLevel, Set.mem_setOf_eq, Set.mem_inter_iff]
+    constructor
+    · intro ⟨hx1, hx2, hx3⟩
+      exact ⟨hx1, hx2, hx3⟩
+    · intro ⟨hx1, hx2, hx3⟩
+      exact ⟨hx1, hx2, hx3⟩
+  rw [this]
+  exact h1.inter (h2.inter h3)
 
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
