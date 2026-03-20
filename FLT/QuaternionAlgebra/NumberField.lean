@@ -191,8 +191,7 @@ noncomputable def GL2.localTameLevel (v : HeightOneSpectrum (𝓞 F)) :
 
 /-- The local tame level `U₁(v)` is a subgroup of the local full level `GL₂(𝒪ᵥ)`. -/
 lemma GL2.localTameLevel_le_localFullLevel (v : HeightOneSpectrum (𝓞 F)) :
-    localTameLevel v ≤ localFullLevel v :=
-  sorry
+    localTameLevel v ≤ localFullLevel v := fun _ hx => hx.1
 
 /-- Membership in the local tame level `U₁(v)` can be characterized purely in terms of
 valuations: an element of `GL₂(Fᵥ)` lies in `U₁(v)` if and only if all entries have
