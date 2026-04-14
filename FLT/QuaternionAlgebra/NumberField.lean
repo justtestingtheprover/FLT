@@ -214,8 +214,14 @@ theorem GL2.localTameLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
 theorem GL2.localTameLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
-    IsCompact (GL2.localTameLevel v).carrier :=
-  sorry
+    IsCompact (GL2.localTameLevel v).carrier := by
+  -- localTameLevel is an open subgroup, hence also closed (in a topological group)
+  have hclosed : IsClosed (GL2.localTameLevel v).carrier :=
+    Subgroup.isClosed_of_isOpen (GL2.localTameLevel v) (GL2.localTameLevel.isOpen v)
+  -- localTameLevel ⊆ localFullLevel, and localFullLevel is compact
+  have hsub : (GL2.localTameLevel v).carrier ⊆ (GL2.localFullLevel v).carrier :=
+    GL2.localTameLevel_le_localFullLevel v
+  exact (GL2.localFullLevel.isCompact v).of_isClosed_subset hclosed hsub
 
 end IsDedekindDomain
 
