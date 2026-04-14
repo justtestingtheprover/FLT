@@ -83,8 +83,44 @@ theorem GL2.localFullLevel.isOpen (v : HeightOneSpectrum (𝓞 F)) :
 -- the clever way to prove this is a theorem of the form "if A is a compact submonoid of R
 -- then Aˣ is a compact subgroup of Rˣ"
 theorem GL2.localFullLevel.isCompact (v : HeightOneSpectrum (𝓞 F)) :
-    IsCompact (GL2.localFullLevel v).carrier :=
-  sorry
+    IsCompact (GL2.localFullLevel v).carrier := by
+  haveI hOvCompact : CompactSpace (v.adicCompletionIntegers F) :=
+    NumberField.instCompactSpaceAdicCompletionIntegers F v
+  haveI hMCompact : CompactSpace (Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F)) := 
+    Pi.compactSpace
+  haveI hGLCompact : CompactSpace (GL (Fin 2) (v.adicCompletionIntegers F)) := by
+    rw [← isCompact_univ_iff]
+    let M := Matrix (Fin 2) (Fin 2) (v.adicCompletionIntegers F)
+    let e := Units.embedProduct M
+    have he := Units.isEmbedding_embedProduct (M := M)
+    rw [he.isCompact_iff, Set.image_univ]
+    have hclosed : IsClosed (Set.range e) := by
+      have heq : Set.range e = {p : M × Mᵐᵒᵖ | p.1 * p.2.unop = 1 ∧ p.2.unop * p.1 = 1} := by
+        ext ⟨x, y⟩
+        simp only [Set.mem_range, Set.mem_setOf_eq]
+        constructor
+        · rintro ⟨u, hu⟩
+          have h1 : u.val = x := congr_arg Prod.fst hu
+          have h2 : MulOpposite.op u.inv = y := congr_arg Prod.snd hu
+          have h2' : MulOpposite.unop y = u.inv := by rw [← h2, MulOpposite.unop_op]
+          rw [← h1, h2']
+          exact ⟨u.val_inv, u.inv_val⟩
+        · intro ⟨hxy, hyx⟩
+          exact ⟨⟨x, y.unop, hxy, hyx⟩, Prod.ext rfl (MulOpposite.op_unop y)⟩
+      rw [heq]
+      apply IsClosed.inter
+      · exact isClosed_eq (continuous_fst.mul (MulOpposite.continuous_unop.comp continuous_snd))
+          continuous_const
+      · exact isClosed_eq ((MulOpposite.continuous_unop.comp continuous_snd).mul continuous_fst)
+          continuous_const
+    exact hclosed.isCompact
+  have hcarrier : (GL2.localFullLevel v).carrier = 
+    Set.range (Units.map (RingHom.mapMatrix (v.adicCompletionIntegers F).subtype).toMonoidHom) := rfl
+  rw [hcarrier, ← Set.image_univ]
+  apply IsCompact.image isCompact_univ
+  apply Continuous.units_map
+  refine continuous_pi fun i => continuous_pi fun j => ?_
+  exact continuous_subtype_val.comp ((continuous_apply j).comp (continuous_apply i))
 
 lemma GL2.mem_localFullLevel {v : HeightOneSpectrum (𝓞 F)} {x : GL (Fin 2) (v.adicCompletion F)}
     (hx : x ∈ localFullLevel v) :
